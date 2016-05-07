@@ -4,10 +4,16 @@ using System.Collections.Generic;
 using SimpleAStarExample;
 using DG.Tweening;
 
-public class Unit : MonoBehaviour {
+public enum UnitType
+{
+    Zookeeper, Poop, Lion, Elephant, Monkey, Goat, Visitor
+}
 
+public class Unit : MonoBehaviour {
+    public UnitType type;
     public float speed;
     public string startState;
+    public string[] buttonStrings;
 
     public Tile Tile
     {
@@ -32,6 +38,9 @@ public class Unit : MonoBehaviour {
     {
         mTransform = this.transform;
     }
+
+    public virtual void Action1() { }
+    public virtual void Action2() { }
 
     public void MoveTo(Map map, Tile tile)
     {

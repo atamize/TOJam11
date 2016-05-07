@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 
-public class Tile : MonoBehaviour {
+public class Tile {
     public int x;
     public int y;
     public Vector3 worldPosition;
