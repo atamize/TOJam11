@@ -1,2 +1,5 @@
 JamGame/Library/
 JamGame/Temp/
+*.csproj
+*.sln
+JamGame/obj/
