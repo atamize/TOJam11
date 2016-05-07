@@ -21,6 +21,11 @@ namespace SimpleAStarExample
         /// <param name="searchParameters"></param>
         public PathFinder(SearchParameters searchParameters)
         {
+            SetSearchParameters(searchParameters);
+        }
+
+        public void SetSearchParameters(SearchParameters searchParameters)
+        {
             this.searchParameters = searchParameters;
             InitializeNodes(searchParameters.Map);
             this.startNode = this.nodes[searchParameters.StartLocation.X, searchParameters.StartLocation.Y];
@@ -164,13 +169,13 @@ namespace SimpleAStarExample
         {
             return new Point[]
             {
-                new Point(fromLocation.X-1, fromLocation.Y-1),
+                //new Point(fromLocation.X-1, fromLocation.Y-1),
                 new Point(fromLocation.X-1, fromLocation.Y  ),
-                new Point(fromLocation.X-1, fromLocation.Y+1),
+                //new Point(fromLocation.X-1, fromLocation.Y+1),
                 new Point(fromLocation.X,   fromLocation.Y+1),
-                new Point(fromLocation.X+1, fromLocation.Y+1),
+                //new Point(fromLocation.X+1, fromLocation.Y+1),
                 new Point(fromLocation.X+1, fromLocation.Y  ),
-                new Point(fromLocation.X+1, fromLocation.Y-1),
+                //new Point(fromLocation.X+1, fromLocation.Y-1),
                 new Point(fromLocation.X,   fromLocation.Y-1)
             };
         }

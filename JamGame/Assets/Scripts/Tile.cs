@@ -30,6 +30,6 @@ public class Tile : MonoBehaviour {
 
     public bool IsFree()
     {
-        return startState != '-';
+        return startState == '-';
     }
 }

@@ -35,4 +35,14 @@ public class Main : MonoBehaviour {
             }
         }
 	}
+
+    public void Button1()
+    {
+        print("Button1");
+    }
+
+    public void Button2()
+    {
+        print("Button2");
+    }
 }

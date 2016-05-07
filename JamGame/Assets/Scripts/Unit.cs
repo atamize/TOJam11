@@ -18,6 +18,10 @@ public class Unit : MonoBehaviour {
     Transform mTransform;
     Tile currentTile;
     SearchParameters searchParams;
+    PathFinder pathFinder;
+    Tweener moveTween;
+    Coroutine moveRoutine;
+    bool moving;
 
     public char StartState
     {
@@ -31,19 +35,45 @@ public class Unit : MonoBehaviour {
 
     public void MoveTo(Map map, Tile tile)
     {
-        searchParams = new SearchParameters(currentTile.Location, tile.Location, map);
-        PathFinder pathFinder = new PathFinder(searchParams);
+        if (searchParams == null)
+        {
+            searchParams = new SearchParameters(currentTile.Location, tile.Location, map);
+        }
+        else
+        {
+            searchParams.StartLocation = currentTile.Location;
+            searchParams.EndLocation = tile.Location;
+        }
+
+        if (pathFinder == null)
+        {
+            pathFinder = new PathFinder(searchParams);
+        }
+        else
+        {
+            pathFinder.SetSearchParameters(searchParams);
+        }
+
         var path = pathFinder.FindPath();
 
-        StartCoroutine(Move(map, path));
+        if (moving)
+        {
+            moveTween.Kill();
+            StopCoroutine(moveRoutine);
+        }
+        moveRoutine = StartCoroutine(Move(map, path));
     }
 
     IEnumerator Move(Map map, List<System.Drawing.Point> path)
     {
+        moving = true;
         foreach (var point in path)
         {
             Vector3 dest = map.GetTilePosition(point.X, point.Y);
-            yield return mTransform.DOMove(dest, speed).SetSpeedBased(true).SetEase(Ease.Linear).WaitForCompletion();
+            moveTween = mTransform.DOMove(dest, speed).SetSpeedBased(true).SetEase(Ease.Linear);
+            yield return moveTween.WaitForCompletion();
+            Tile = map.GetTile(point.X, point.Y);
         }
+        moving = false;
     }
 }

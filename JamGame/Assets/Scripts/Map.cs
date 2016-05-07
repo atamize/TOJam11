@@ -32,7 +32,7 @@ public class Map : MonoBehaviour, IBoolMap {
         IEnumerator ie = gridParent.GetEnumerator();
 
         float x = transform.position.x - (width / 2f) * tileSize + (tileSize / 2f);
-        float y = transform.position.y - (height / 2f) * tileSize + (tileSize / 2f);
+        float y = transform.position.y + (height / 2f) * tileSize + (tileSize / 2f);
 
         for (int i = 0; i < gridData.Length; ++i)
         {
@@ -88,17 +88,17 @@ public class Map : MonoBehaviour, IBoolMap {
     [ContextMenu("Make Grid")]
     public void MakeGrid()
     {
-        IEnumerator ie = transform.GetEnumerator();
-        float x = transform.position.x - (width / 2f) * tileSize + (tileSize / 2f);
-        float y = transform.position.y - (height / 2f) * tileSize + (tileSize / 2f);
+        IEnumerator ie = gridParent.GetEnumerator();
+        float x = gridParent.position.x - (width / 2f) * tileSize + (tileSize / 2f);
+        float y = gridParent.position.y + (height / 2f) * tileSize + (tileSize / 2f);
 
-        for (int i = 0; i < width; ++i)
+        for (int i = 0; i < height; ++i)
         {
-            for (int j = 0; j < height; ++j)
+            for (int j = 0; j < width; ++j)
             {
                 ie.MoveNext();
                 Transform t = (Transform)ie.Current;
-                t.position = new Vector3(x + tileSize * i, y - tileSize * j, 0);
+                t.position = new Vector3(x + tileSize * j, y - tileSize * i, 0);
             }
         }
     }
