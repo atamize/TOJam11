@@ -23,10 +23,15 @@ public class Main : MonoBehaviour {
 	void Start()
     {
         map.InitTiles();
+
         foreach (Unit unit in units)
         {
-            var tile = map.GetTileWithState(unit.StartState);
-            unit.Tile = tile;
+            if (unit.type == UnitType.Zookeeper)
+            {
+                var tile = map.GetTileWithState(unit.StartState);
+                unit.Tile = tile;
+            }
+            unit.Init(this);
         }
 
         poos = new LinkedList<Unit>();
@@ -110,6 +115,13 @@ public class Main : MonoBehaviour {
     public void VisitSuccess(Unit unit, int amount)
     {
         money += amount;
+        UpdateMoney();
+    }
+
+    public void KillVisitor(Unit unit)
+    {
+        money -= 100;
+        unit.RemoveFromTile();
         UpdateMoney();
     }
 

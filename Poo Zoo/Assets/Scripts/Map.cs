@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using SimpleAStarExample;
 
 [ExecuteInEditMode]
@@ -83,6 +84,41 @@ public class Map : MonoBehaviour, IBoolMap {
     public Vector3 GetTilePosition(int x, int y)
     {
         return GetTile(x, y).worldPosition;
+    }
+
+    public List<Tile> GetAdjacentTiles(Tile tile)
+    {
+        List<Tile> list = new List<Tile>();
+        
+        if (tile.x > 0)
+        {
+            var t = tiles[tile.x - 1, tile.y];
+            if (t.IsFree())
+                list.Add(t);
+        }
+
+        if (tile.x < width - 1)
+        {
+            var t = tiles[tile.x + 1, tile.y];
+            if (t.IsFree())
+                list.Add(t);
+        }
+
+        if (tile.y > 0)
+        {
+            var t = tiles[tile.x, tile.y - 1];
+            if (t.IsFree())
+                list.Add(t);
+        }
+
+        if (tile.y < height - 1)
+        {
+            var t = tiles[tile.x, tile.y + 1];
+            if (t.IsFree())
+                list.Add(t);
+        }
+
+        return list;
     }
 
     [ContextMenu("Make Grid")]

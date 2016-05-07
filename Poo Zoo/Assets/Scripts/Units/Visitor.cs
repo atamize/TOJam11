@@ -52,6 +52,7 @@ public class Visitor : Unit
         }
 
         yield return MoveTo(main.map, main.map.GetTile(6, 0));
+        RemoveFromTile();
         main.RemoveUnit(this);
     }
 }

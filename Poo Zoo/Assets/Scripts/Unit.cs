@@ -32,7 +32,7 @@ public class Unit : MonoBehaviour
         }
     }
 
-    Transform mTransform;
+    protected Transform mTransform;
     Tile currentTile;
     Tile destinationTile;
     SearchParameters searchParams;
@@ -77,6 +77,7 @@ public class Unit : MonoBehaviour
 
     public Coroutine MoveTo(Map map, Tile tile)
     {
+        destinationTile = tile;
         if (searchParams == null)
         {
             searchParams = new SearchParameters(currentTile.Location, tile.Location, map);
@@ -129,5 +130,10 @@ public class Unit : MonoBehaviour
             }
         }
         moving = false;
+    }
+
+    public void RemoveFromTile()
+    {
+        Tile.Remove(this);
     }
 }

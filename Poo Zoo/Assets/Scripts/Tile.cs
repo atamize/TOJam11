@@ -49,6 +49,16 @@ public class Tile {
         return false;
     }
 
+    public Unit GetOccupantOfType(UnitType type)
+    {
+        foreach (var unit in occupyingUnits)
+        {
+            if (unit.type == type)
+                return unit;
+        }
+        return null;
+    }
+
     public bool IsFree()
     {
         return occupyingUnits.Count == 0 && startState != 'X';
