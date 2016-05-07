@@ -9,10 +9,16 @@ public class Main : MonoBehaviour {
     public List<Unit> units;
     public Text[] actionTexts;
     public Text dialogueText;
+    public Text moneyText;
+    public Text pooText;
+    public Unit pooPrefab;
+    public Unit visitorPrefab;
 
     SearchParameters searchParams;
     LinkedList<Unit> poos;
     Unit selectedUnit;
+    int money;
+    int pooCount;
 
 	void Start()
     {
@@ -21,13 +27,32 @@ public class Main : MonoBehaviour {
         {
             var tile = map.GetTileWithState(unit.StartState);
             unit.Tile = tile;
-            unit.transform.position = tile.worldPosition;
         }
 
         poos = new LinkedList<Unit>();
 
         SelectUnit(units[0]);
+
+        var visitor = GameObject.Instantiate<Unit>(visitorPrefab);
+        visitor.Tile = map.GetTile(6, 0);
+        units.Add(visitor);
+        visitor.Init(this);
 	}
+
+    void Reset()
+    {
+        money = 0;
+        UpdateMoney();
+    }
+
+    void UpdateMoney()
+    {
+        moneyText.text = string.Format("${0}", money.ToString());
+        if (money > 0)
+            moneyText.color = Color.green;
+        else
+            moneyText.color = Color.red;
+    }
 	
 	void Update()
     {
@@ -67,11 +92,30 @@ public class Main : MonoBehaviour {
 
     public void Button1()
     {
-        selectedUnit.Action1();
+        selectedUnit.Action1(this);
     }
 
     public void Button2()
     {
-        selectedUnit.Action2();
+        selectedUnit.Action2(this);
+    }
+
+    public void AddPoo(Tile tile)
+    {
+        var poo = GameObject.Instantiate<Unit>(pooPrefab);
+        poo.Tile = tile;
+        poos.AddLast(poo);
+    }
+
+    public void VisitSuccess(Unit unit, int amount)
+    {
+        money += amount;
+        UpdateMoney();
+    }
+
+    public void RemoveUnit(Unit unit)
+    {
+        units.Remove(unit);
+        Destroy(unit.gameObject);
     }
 }

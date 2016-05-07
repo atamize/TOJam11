@@ -26,10 +26,31 @@ public class Tile {
         x = _x;
         y = _y;
         startState = state;
+        occupyingUnits = new List<Unit>();
+    }
+
+    public void Occupy(Unit unit)
+    {
+        occupyingUnits.Add(unit);
+    }
+
+    public void Remove(Unit unit)
+    {
+        occupyingUnits.Remove(unit);
+    }
+
+    public bool OccupiedBy(UnitType type)
+    {
+        foreach (var unit in occupyingUnits)
+        {
+            if (unit.type == type)
+                return true;
+        }
+        return false;
     }
 
     public bool IsFree()
     {
-        return startState == '-';
+        return occupyingUnits.Count == 0 && startState != 'X';
     }
 }

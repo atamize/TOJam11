@@ -1,15 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Lion : MonoBehaviour {
+public class Lion : Unit
+{
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+    IEnumerator Prowl(Map map)
+    {
+        while (true)
+        {
+            yield return null;
+        }
+    }
 }

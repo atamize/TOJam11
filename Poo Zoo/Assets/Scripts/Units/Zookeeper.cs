@@ -2,13 +2,13 @@
 using System.Collections;
 
 public class Zookeeper : Unit {
-
-    public override void Action1()
+    
+    public override void Action1(Main main)
     {
-        print("Poop");
+        main.AddPoo(Tile);
     }
 
-    public override void Action2()
+    public override void Action2(Main main)
     {
         print("Action 2");
     }
