@@ -37,23 +37,34 @@ public class Monkey : Animal
         var fuck = new DontCare(main.map);
         SearchParameters search = new SearchParameters(new Point(0,0), new Point(0,0), fuck);
         PathFinder pf = new PathFinder(search);
-        Dictionary<Unit, List<Point>> paths = new Dictionary<Unit, List<Point>>();
-
+        
         while (main.PooUnits.Any())
         {
-            Unit targetPoo = main.PooUnits.OrderBy(p =>
+            List<Point> leastPath = null;
+            Unit targetPoo = null;
+            int min = int.MaxValue;
+
+            foreach (var poonit in main.PooUnits)
             {
                 search.StartLocation = Tile.Location;
-                search.EndLocation = p.Tile.Location;
+                search.EndLocation = poonit.Tile.Location;
                 pf.SetSearchParameters(search);
+
                 var path = pf.FindPath();
-                paths.Add(p, path);
-                return path.Count;
-                
-            }).First();
+                if (path.Count < min)
+                {
+                    min = path.Count;
+                    targetPoo = poonit;
+                    leastPath = path;
+                }
+            }
             
-            yield return MoveToPath(main.map, paths[targetPoo]);
+            yield return MoveToPath(main.map, leastPath);
             main.RemovePoo(targetPoo);
         }
+
+        // No more poo; go home
+        yield return MoveTo(main.map, HomeTile);
+        StartCoroutine(GoHome(main));
     }
 }

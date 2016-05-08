@@ -49,13 +49,13 @@ public class Main : MonoBehaviour {
 
         SelectUnit(units[0]);
 
-        for (int i = 0; i < 2; ++i)
-        {
-            var visitor = GameObject.Instantiate<Unit>(visitorPrefab);
-            visitor.Tile = map.GetTile(6, 0);
-            units.Add(visitor);
-            visitor.Init(this);
-        }
+        //for (int i = 0; i < 2; ++i)
+        //{
+        //    var visitor = GameObject.Instantiate<Unit>(visitorPrefab);
+        //    visitor.Tile = map.GetTile(6, 0);
+        //    units.Add(visitor);
+        //    visitor.Init(this);
+        //}
 	}
 
     void Reset()

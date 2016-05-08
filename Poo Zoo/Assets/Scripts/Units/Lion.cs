@@ -7,6 +7,13 @@ using System.Linq;
 public class Lion : Animal
 {
     Tile lastTile;
+    bool wasBlocked;
+
+    public override void Escape(Main main)
+    {
+        wasBlocked = false;
+        base.Escape(main);
+    }
 
     protected override IEnumerator Prowl(Main main)
     {
@@ -30,6 +37,13 @@ public class Lion : Animal
             moveTween = MoveTweener(next);
             yield return moveTween.WaitForCompletion();
             Tile = next;
+
+            if (wasBlocked && next == HomeTile)
+            {
+                StartCoroutine(GoHome(main));
+                wasBlocked = false;
+                yield break;
+            }
         }
     }
 
@@ -40,6 +54,7 @@ public class Lion : Animal
             if (IsBlocked(other.tag))
             {
                 lastTile = other.GetComponent<Unit>().Tile;
+                wasBlocked = true;
                 MoveBack(() =>
                 {
                     moveRoutine = StartCoroutine(Prowl(Main.Instance));

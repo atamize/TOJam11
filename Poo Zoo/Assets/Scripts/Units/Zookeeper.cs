@@ -21,7 +21,7 @@ public class Zookeeper : Unit {
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (IsBlocked(other.tag))
+        if (IsBlocked(other.tag) && destinationTile != null)
         {
             MoveBack(() => MoveTo(Main.Instance.map, destinationTile));
         }

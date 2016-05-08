@@ -16,6 +16,9 @@ public abstract class Animal : Unit
     protected List<Tile> cageTiles;
     protected Coroutine paceRoutine;
     int startingCageIndex;
+    Tile homeTile;
+
+    public Tile HomeTile { get { return homeTile; } }
 
     public override void Init(Main main)
     {
@@ -77,17 +80,16 @@ public abstract class Animal : Unit
 
             cageTileIndex = adjacent[Random.Range(0, adjacent.Count)];
             var tile = cageTiles[cageTileIndex];
-
             yield return MoveTween(tile);
         }
     }
 
-    public void Escape(Main main)
+    public virtual void Escape(Main main)
     {
+        animalState = AnimalState.Escaped;
         StopCoroutine(moveRoutine);
 
         moveRoutine = StartCoroutine(MoveToGate(main));
-
     }
 
     IEnumerator MoveToGate(Main main)
@@ -111,8 +113,19 @@ public abstract class Animal : Unit
 
         animalState = AnimalState.Escaped;
         Tile = gateTile;
+        homeTile = gateTile;
         moveRoutine = StartCoroutine(Prowl(main));
     }
 
     protected abstract IEnumerator Prowl(Main main);
+
+    protected IEnumerator GoHome(Main main)
+    {
+        var gateTile = main.map.GetTile(HomeTile.x, HomeTile.y + (cageTileY == 1 ? 1 : -1));
+        animalState = AnimalState.Pacing;
+        yield return MoveTween(gateTile);
+        Tile = gateTile;
+        moveRoutine = StartCoroutine(Pace(main.map));
+    }
+
 }

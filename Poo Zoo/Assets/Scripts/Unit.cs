@@ -106,7 +106,10 @@ public class Unit : MonoBehaviour
         if (moving)
         {
             moveTween.Kill();
-            StopCoroutine(moveRoutine);
+            if (moveRoutine != null)
+            {
+                StopCoroutine(moveRoutine);
+            }
         }
         moveRoutine = StartCoroutine(Move(map, path));
         return moveRoutine;
