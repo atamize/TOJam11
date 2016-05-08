@@ -26,6 +26,7 @@ public class Main : MonoBehaviour {
     public Unit pooPrefab;
     public Unit visitorPrefab;
     public DialogueData[] dialogueData;
+    public Sprite[] visitorSprites;
 
     SearchParameters searchParams;
     LinkedList<Unit> poos;
@@ -61,13 +62,14 @@ public class Main : MonoBehaviour {
 
         SelectUnit(units[0]);
 
-        //for (int i = 0; i < 2; ++i)
-        //{
-        //    var visitor = GameObject.Instantiate<Unit>(visitorPrefab);
-        //    visitor.Tile = map.GetTile(6, 0);
-        //    units.Add(visitor);
-        //    visitor.Init(this);
-        //}
+        for (int i = 0; i < 2; ++i)
+        {
+            var visitor = GameObject.Instantiate<Unit>(visitorPrefab);
+            visitor.Tile = map.GetTile(6, 0);
+            visitor.spriteRenderer.sprite = visitorSprites[Random.Range(0, visitorSprites.Length)];
+            units.Add(visitor);
+            visitor.Init(this);
+        }
 	}
 
     void Reset()

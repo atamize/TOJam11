@@ -16,6 +16,7 @@ public class Unit : MonoBehaviour
     public string startState;
     public string[] buttonStrings;
     public List<UnitType> blockedBy;
+    public SpriteRenderer spriteRenderer;
 
     public Tile Tile
     {

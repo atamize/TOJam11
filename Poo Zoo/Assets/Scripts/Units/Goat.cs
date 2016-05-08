@@ -1,15 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Goat : MonoBehaviour {
-
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+public class Goat : Animal
+{
+    protected override IEnumerator Prowl(Main main)
+    {
+        yield break;
+    }
 }
