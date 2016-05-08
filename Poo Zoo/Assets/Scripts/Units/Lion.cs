@@ -6,22 +6,14 @@ using System.Linq;
 
 public class Lion : Animal
 {
+    Tile lastTile;
 
-    public override void Init(Main main)
+    protected override IEnumerator Prowl(Main main)
     {
-        Tile = main.map.GetTile(1, 6);
-        StartCoroutine(Prowl(main));
-    }
-
-    IEnumerator Prowl(Main main)
-    {
-        Tile lastTile = null;
-
         while (true)
         {
             List<Tile> adjacent = main.map.GetAdjacentTiles(Tile);
             adjacent.Remove(lastTile);
-            adjacent = adjacent.Where(t => CanOccupyTile(t)).ToList();
 
             Tile next = null;
             if (adjacent.Count > 0)
@@ -35,19 +27,24 @@ public class Lion : Animal
 
             lastTile = Tile;
 
-            yield return mTransform.DOMove(next.worldPosition, speed).SetSpeedBased(true).SetEase(Ease.Linear).WaitForCompletion();
+            moveTween = MoveTweener(next);
+            yield return moveTween.WaitForCompletion();
             Tile = next;
+        }
+    }
 
-            var visitor = Tile.GetOccupantOfType(UnitType.Visitor);
-            if (visitor)
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (animalState == AnimalState.Escaped)
+        {
+            if (IsBlocked(other.tag))
             {
-                main.KillVisitor(visitor);
+                lastTile = other.GetComponent<Unit>().Tile;
+                MoveBack(() =>
+                {
+                    moveRoutine = StartCoroutine(Prowl(Main.Instance));
+                });
             }
-            else
-            {
-                //var monkey = Tile.GetOccupantOfType(UnitType.)
-            }
-           
         }
     }
 }

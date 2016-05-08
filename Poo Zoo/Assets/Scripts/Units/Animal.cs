@@ -3,8 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 
+public enum AnimalState { Pacing, Escaped }
+
 public abstract class Animal : Unit
 {
+    public AnimalState animalState;
     public int cageTileIndex;
     public int cageTileX;
     public int cageTileY;
@@ -12,6 +15,7 @@ public abstract class Animal : Unit
     protected bool pacing;
     protected List<Tile> cageTiles;
     protected Coroutine paceRoutine;
+    int startingCageIndex;
 
     public override void Init(Main main)
     {
@@ -28,13 +32,15 @@ public abstract class Animal : Unit
         }
 
         Tile = cageTiles[cageTileIndex];
-        StartCoroutine(Pace(main.map));
+        moveRoutine = StartCoroutine(Pace(main.map));
     }
 
     IEnumerator Pace(Map map)
     {
         mTransform = this.transform;
         List<int> adjacent = new List<int>();
+        startingCageIndex = cageTileIndex;
+        animalState = AnimalState.Pacing;
 
         while (true)
         {
@@ -72,7 +78,41 @@ public abstract class Animal : Unit
             cageTileIndex = adjacent[Random.Range(0, adjacent.Count)];
             var tile = cageTiles[cageTileIndex];
 
-            yield return mTransform.DOMove(tile.worldPosition, speed).SetSpeedBased(true).SetEase(Ease.Linear).WaitForCompletion();
+            yield return MoveTween(tile);
         }
     }
+
+    public void Escape(Main main)
+    {
+        StopCoroutine(moveRoutine);
+
+        moveRoutine = StartCoroutine(MoveToGate(main));
+
+    }
+
+    IEnumerator MoveToGate(Main main)
+    {
+        var tile = cageTiles[cageTileIndex];
+        if (cageTileIndex != startingCageIndex)
+        {
+            tile = cageTiles[startingCageIndex];
+            yield return MoveTween(tile);
+        }
+
+        var gateTile = main.map.GetTile(tile.x, tile.y + (cageTileY == 1 ? -1 : 1));
+        
+        while (!CanOccupyTile(gateTile))
+        {
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        // We're free!
+        yield return MoveTween(gateTile);
+
+        animalState = AnimalState.Escaped;
+        Tile = gateTile;
+        moveRoutine = StartCoroutine(Prowl(main));
+    }
+
+    protected abstract IEnumerator Prowl(Main main);
 }

@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class Main : MonoBehaviour {
     public Map map;
     public List<Unit> units;
+    public List<Animal> animals;
     public Text[] actionTexts;
     public Text dialogueText;
     public Text moneyText;
@@ -19,6 +20,14 @@ public class Main : MonoBehaviour {
     Unit selectedUnit;
     int money;
     int pooCount;
+
+    static Main instance;
+    public static Main Instance { get { return instance; } }
+
+    void Awake()
+    {
+        instance = this;
+    }
 
 	void Start()
     {
@@ -38,10 +47,13 @@ public class Main : MonoBehaviour {
 
         SelectUnit(units[0]);
 
-        var visitor = GameObject.Instantiate<Unit>(visitorPrefab);
-        visitor.Tile = map.GetTile(6, 0);
-        units.Add(visitor);
-        visitor.Init(this);
+        for (int i = 0; i < 2; ++i)
+        {
+            var visitor = GameObject.Instantiate<Unit>(visitorPrefab);
+            visitor.Tile = map.GetTile(6, 0);
+            units.Add(visitor);
+            visitor.Init(this);
+        }
 	}
 
     void Reset()
@@ -71,6 +83,18 @@ public class Main : MonoBehaviour {
                 print("Hit " + to.x + ", " + to.y);
 
                 selectedUnit.MoveTo(map, map.GetTile(to.x, to.y));
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            foreach (var animal in animals)
+            {
+                if (animal.animalState == AnimalState.Pacing)
+                {
+                    animal.Escape(this);
+                    break;
+                }
             }
         }
 	}
@@ -109,6 +133,7 @@ public class Main : MonoBehaviour {
     {
         var poo = GameObject.Instantiate<Unit>(pooPrefab);
         poo.Tile = tile;
+        tile.Occupy(poo);
         poos.AddLast(poo);
     }
 
@@ -122,6 +147,8 @@ public class Main : MonoBehaviour {
     {
         money -= 100;
         unit.RemoveFromTile();
+        units.Remove(unit);
+        Destroy(unit.gameObject);
         UpdateMoney();
     }
 

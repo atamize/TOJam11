@@ -27,18 +27,18 @@ public class Unit : MonoBehaviour
                 currentTile.Remove(this);
             }
             currentTile = value;
-            currentTile.Occupy(this);
             transform.position = currentTile.worldPosition;
         }
     }
 
     protected Transform mTransform;
+    protected Tile lastTile;
     Tile currentTile;
-    Tile destinationTile;
+    protected Tile destinationTile;
     SearchParameters searchParams;
     PathFinder pathFinder;
-    Tweener moveTween;
-    Coroutine moveRoutine;
+    protected Tweener moveTween;
+    protected Coroutine moveRoutine;
     bool moving;
 
     public char StartState
@@ -111,29 +111,61 @@ public class Unit : MonoBehaviour
     IEnumerator Move(Map map, List<System.Drawing.Point> path)
     {
         moving = true;
+        RemoveFromTile();
         foreach (var point in path)
         {
             var tile = map.GetTile(point.X, point.Y);
-            if (CanOccupyTile(tile))
-            {
-                moveTween = mTransform.DOMove(tile.worldPosition, speed).SetSpeedBased(true).SetEase(Ease.Linear);
-                yield return moveTween.WaitForCompletion();
-                Tile = map.GetTile(point.X, point.Y);
-            }
-            else if (path.Count > 1)
-            {
-                OnBlockedPath(map);
-            }
-            else
-            {
-                OnFullyBlocked(map);
-            }
+            
+            moveTween = mTransform.DOMove(tile.worldPosition, speed).SetSpeedBased(true).SetEase(Ease.Linear);
+            yield return moveTween.WaitForCompletion();
+            Tile = map.GetTile(point.X, point.Y);
         }
+
+        Tile.Occupy(this);
         moving = false;
     }
 
     public void RemoveFromTile()
     {
         Tile.Remove(this);
+    }
+
+    protected Tweener MoveTweener(Tile tile)
+    {
+        return mTransform.DOMove(tile.worldPosition, speed).SetSpeedBased(true).SetEase(Ease.Linear);
+    }
+
+    protected YieldInstruction MoveTween(Tile tile)
+    {
+        return MoveTweener(tile).WaitForCompletion();
+    }
+
+    public bool IsBlocked(string collidingTag)
+    {
+        foreach (var e in blockedBy)
+        {
+            if (e.ToString() == collidingTag)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected void MoveBack(System.Action callback)
+    {
+        if (moveTween != null)
+        {
+            moveTween.Kill();
+            moveTween = null;
+        }
+
+        StopCoroutine(moveRoutine);
+
+        var tweener = MoveTweener(Tile);
+        tweener.OnComplete(() =>
+        {
+            callback();
+        });
     }
 }

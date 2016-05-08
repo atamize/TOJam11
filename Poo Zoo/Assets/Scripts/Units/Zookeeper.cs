@@ -12,4 +12,12 @@ public class Zookeeper : Unit {
     {
         print("Action 2");
     }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (IsBlocked(other.tag))
+        {
+            MoveBack(() => MoveTo(Main.Instance.map, destinationTile));
+        }
+    }
 }

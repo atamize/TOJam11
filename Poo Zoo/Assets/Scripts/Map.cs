@@ -93,28 +93,28 @@ public class Map : MonoBehaviour, IBoolMap {
         if (tile.x > 0)
         {
             var t = tiles[tile.x - 1, tile.y];
-            if (t.IsFree())
+            if (t.StartState != 'X')
                 list.Add(t);
         }
 
         if (tile.x < width - 1)
         {
             var t = tiles[tile.x + 1, tile.y];
-            if (t.IsFree())
+            if (t.StartState != 'X')
                 list.Add(t);
         }
 
         if (tile.y > 0)
         {
             var t = tiles[tile.x, tile.y - 1];
-            if (t.IsFree())
+            if (t.StartState != 'X')
                 list.Add(t);
         }
 
         if (tile.y < height - 1)
         {
             var t = tiles[tile.x, tile.y + 1];
-            if (t.IsFree())
+            if (t.StartState != 'X')
                 list.Add(t);
         }
 
