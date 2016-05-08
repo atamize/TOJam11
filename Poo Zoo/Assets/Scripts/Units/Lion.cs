@@ -45,6 +45,14 @@ public class Lion : Animal
                     moveRoutine = StartCoroutine(Prowl(Main.Instance));
                 });
             }
+            else if (other.CompareTag("Visitor"))
+            {
+                Main.Instance.KillVisitor(other.GetComponent<Unit>());
+            }
+            else if (other.CompareTag("Monkey"))
+            {
+                // TODO: monkey dies/goes back to pen
+            }
         }
     }
 }

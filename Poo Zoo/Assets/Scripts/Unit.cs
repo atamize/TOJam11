@@ -98,7 +98,11 @@ public class Unit : MonoBehaviour
         }
 
         var path = pathFinder.FindPath();
+        return MoveToPath(map, path);
+    }
 
+    public Coroutine MoveToPath(Map map, List<System.Drawing.Point> path)
+    {
         if (moving)
         {
             moveTween.Kill();

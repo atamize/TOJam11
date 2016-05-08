@@ -55,4 +55,12 @@ public class Visitor : Unit
         RemoveFromTile();
         main.RemoveUnit(this);
     }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (IsBlocked(other.tag))
+        {
+            MoveBack(() => MoveTo(Main.Instance.map, destinationTile));
+        }
+    }
 }

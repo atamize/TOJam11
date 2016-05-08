@@ -24,6 +24,8 @@ public class Main : MonoBehaviour {
     static Main instance;
     public static Main Instance { get { return instance; } }
 
+    public LinkedList<Unit> PooUnits { get { return poos; } }
+
     void Awake()
     {
         instance = this;
@@ -137,6 +139,13 @@ public class Main : MonoBehaviour {
         poos.AddLast(poo);
     }
 
+    public void RemovePoo(Unit poo)
+    {
+        poo.RemoveFromTile();
+        poos.Remove(poo);
+        Destroy(poo.gameObject);
+    }
+
     public void VisitSuccess(Unit unit, int amount)
     {
         money += amount;
@@ -156,5 +165,17 @@ public class Main : MonoBehaviour {
     {
         units.Remove(unit);
         Destroy(unit.gameObject);
+    }
+
+    public void Release(UnitType type)
+    {
+        foreach (var animal in animals)
+        {
+            if (animal.animalState == AnimalState.Pacing && animal.type == type)
+            {
+                animal.Escape(this);
+                break;
+            }
+        }
     }
 }

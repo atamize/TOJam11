@@ -10,7 +10,13 @@ public class Zookeeper : Unit {
 
     public override void Action2(Main main)
     {
-        print("Action 2");
+        int x = Tile.x;
+        int y = Tile.y;
+
+        if (x == 10 && y == 0)
+        {
+            main.Release(UnitType.Monkey);
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
