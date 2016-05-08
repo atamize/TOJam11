@@ -51,6 +51,7 @@ public class Main : MonoBehaviour {
     public AudioData[] audioData;
     public Sprite[] visitorSprites;
     public string[] successStrings;
+    public GameObject title;
 
     public AudioSource sfxSource;
     public AudioSource musicSource;
@@ -71,6 +72,7 @@ public class Main : MonoBehaviour {
     void Awake()
     {
         instance = this;
+        gameState = GameState.Title;
     }
 
 	void Start()
@@ -78,21 +80,21 @@ public class Main : MonoBehaviour {
         map.InitTiles();
         visitors = new LinkedList<Unit>();
         poos = new LinkedList<Unit>();
-        Reset();
 	}
 
     public void Restart()
     {
-        Time.timeScale = 1f;
-        pauseBox.SetActive(false);
         Reset();
     }
 
     public void Reset()
     {
         gameState = GameState.Playing;
+        Time.timeScale = 1f;
+        pauseBox.SetActive(false);
         money = 0;
         pauseText.text = "PAUSED";
+        Dialogue("boss", "Watch out for lions, and try not to stink up the place!");
 
         foreach (var v in visitors)
         {
@@ -128,6 +130,7 @@ public class Main : MonoBehaviour {
         Invoke("CheckLion", initialLionTime);
         Invoke("CheckVisitors", 2f);
         gameState = GameState.Playing;
+        title.SetActive(false);
 
         StartCoroutine(RunClock());
     }
@@ -181,19 +184,28 @@ public class Main : MonoBehaviour {
         else
             moneyText.color = Color.red;
     }
+
+    public void Quit()
+    {
+        Time.timeScale = 1f;
+        title.SetActive(true);
+    }
 	
 	void Update()
     {
-	    if (Input.GetMouseButtonDown(0))
+        if (gameState == GameState.Playing)
         {
-            Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(pos, Vector3.forward, out hit))
+            if (Input.GetMouseButtonDown(0))
             {
-                var to = hit.collider.GetComponent<TileObject>();
-                print("Hit " + to.x + ", " + to.y);
+                Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                RaycastHit hit;
+                if (Physics.Raycast(pos, Vector3.forward, out hit))
+                {
+                    var to = hit.collider.GetComponent<TileObject>();
+                    print("Hit " + to.x + ", " + to.y);
 
-                selectedUnit.MoveTo(map, map.GetTile(to.x, to.y));
+                    selectedUnit.MoveTo(map, map.GetTile(to.x, to.y));
+                }
             }
         }
 
