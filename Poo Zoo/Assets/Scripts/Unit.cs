@@ -75,7 +75,7 @@ public class Unit : MonoBehaviour
         return true;
     }
 
-    public Coroutine MoveTo(Map map, Tile tile)
+    public virtual Coroutine MoveTo(Map map, Tile tile)
     {
         destinationTile = tile;
         if (searchParams == null)
@@ -130,6 +130,11 @@ public class Unit : MonoBehaviour
 
         Tile.Occupy(this);
         moving = false;
+        Arrived(map);
+    }
+
+    public virtual void Arrived(Map map)
+    {
     }
 
     public void RemoveFromTile()

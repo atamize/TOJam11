@@ -4,16 +4,28 @@ using System.Collections.Generic;
 using SimpleAStarExample;
 using UnityEngine.UI;
 
+[System.Serializable]
+public class DialogueData
+{
+    public string id;
+    public string name;
+    public string title;
+    public Sprite sprite;
+}
+
 public class Main : MonoBehaviour {
     public Map map;
     public List<Unit> units;
     public List<Animal> animals;
     public Text[] actionTexts;
+    public GameObject dialogueBox;
+    public Text dialogueName;
     public Text dialogueText;
+    public Image dialogueImage;
     public Text moneyText;
-    public Text pooText;
     public Unit pooPrefab;
     public Unit visitorPrefab;
+    public DialogueData[] dialogueData;
 
     SearchParameters searchParams;
     LinkedList<Unit> poos;
@@ -104,21 +116,32 @@ public class Main : MonoBehaviour {
     void SelectUnit(Unit unit)
     {
         selectedUnit = unit;
-
+        selectedUnit.Arrived(map);
         // Update UI buttons
-        int length = selectedUnit.buttonStrings.Length;
-        for (int i = 0; i < 2; ++i)
-        {
-            if (i < length)
-            {
-                actionTexts[i].text = selectedUnit.buttonStrings[i];
-                actionTexts[i].transform.parent.gameObject.SetActive(true);
-            }
-            else
-            {
-                actionTexts[i].transform.parent.gameObject.SetActive(false);
-            }
-        }
+        //int length = selectedUnit.buttonStrings.Length;
+        //for (int i = 0; i < 2; ++i)
+        //{
+        //    if (i < length)
+        //    {
+        //        actionTexts[i].text = selectedUnit.buttonStrings[i];
+        //        actionTexts[i].transform.parent.gameObject.SetActive(true);
+        //    }
+        //    else
+        //    {
+        //        actionTexts[i].transform.parent.gameObject.SetActive(false);
+        //    }
+        //}
+    }
+
+    public void ShowButton(int index, string label)
+    {
+        actionTexts[index].text = label;
+        actionTexts[index].transform.parent.gameObject.SetActive(true);
+    }
+
+    public void HideButton(int index)
+    {
+        actionTexts[index].transform.parent.gameObject.SetActive(false);
     }
 
     public void Button1()
@@ -144,6 +167,26 @@ public class Main : MonoBehaviour {
         poo.RemoveFromTile();
         poos.Remove(poo);
         Destroy(poo.gameObject);
+    }
+
+    public void Dialogue(string id, string message)
+    {
+        for (int i = 0; i < dialogueData.Length; ++i)
+        {
+            if (dialogueData[i].id == id)
+            {
+                dialogueName.text = dialogueData[i].name;
+                dialogueImage.sprite = dialogueData[i].sprite;
+                dialogueText.text = message;
+                dialogueBox.SetActive(true);
+                break;
+            }
+        }
+    }
+
+    public void HideDialogue()
+    {
+        dialogueBox.SetActive(false);
     }
 
     public void VisitSuccess(Unit unit, int amount)
