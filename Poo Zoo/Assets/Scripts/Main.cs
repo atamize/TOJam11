@@ -14,12 +14,23 @@ public class DialogueData
     public Sprite sprite;
 }
 
+[System.Serializable]
+public class AudioData
+{
+    public string id;
+    public List<AudioClip> clips;
+}
+
+public enum GameState { Title, Playing, Paused, GameOver }
+
 public class Main : MonoBehaviour {
     public Map map;
     public List<Unit> units;
     public List<Animal> animals;
     public Text[] actionTexts;
+    public GameObject pauseBox;
     public GameObject dialogueBox;
+    public Text pauseText;
     public Text dialogueName;
     public Text dialogueText;
     public Image dialogueImage;
@@ -28,6 +39,8 @@ public class Main : MonoBehaviour {
     public Unit visitorPrefab;
     public Animal lion;
     public Animal monkey;
+    public Image clockImage;
+    public float gameTime = 120f;
     public float initialLionTime = 10;
     public float minLionTime;
     public float maxLionTime;
@@ -35,14 +48,20 @@ public class Main : MonoBehaviour {
     public float maxVisitorTime;
     public int lawsuitCost = 100;
     public DialogueData[] dialogueData;
+    public AudioData[] audioData;
     public Sprite[] visitorSprites;
     public string[] successStrings;
 
+    public AudioSource sfxSource;
+    public AudioSource musicSource;
+
     SearchParameters searchParams;
     LinkedList<Unit> poos;
+    LinkedList<Unit> visitors;
     Unit selectedUnit;
     int money;
     int pooCount;
+    GameState gameState;
 
     static Main instance;
     public static Main Instance { get { return instance; } }
@@ -57,6 +76,41 @@ public class Main : MonoBehaviour {
 	void Start()
     {
         map.InitTiles();
+        visitors = new LinkedList<Unit>();
+        poos = new LinkedList<Unit>();
+        Reset();
+	}
+
+    public void Restart()
+    {
+        Time.timeScale = 1f;
+        pauseBox.SetActive(false);
+        Reset();
+    }
+
+    public void Reset()
+    {
+        gameState = GameState.Playing;
+        money = 0;
+        pauseText.text = "PAUSED";
+
+        foreach (var v in visitors)
+        {
+            v.RemoveFromTile();
+            Destroy(v.gameObject);
+        }
+        visitors.Clear();
+
+        foreach (var p in poos)
+        {
+            p.RemoveFromTile();
+            Destroy(p.gameObject);
+        }
+        poos.Clear();
+        
+        UpdateMoney();
+        CancelInvoke();
+        StopAllCoroutines();
 
         foreach (Unit unit in units)
         {
@@ -68,18 +122,30 @@ public class Main : MonoBehaviour {
             unit.Init(this);
         }
 
-        poos = new LinkedList<Unit>();
-
+        clockImage.fillAmount = 1f;
         SelectUnit(units[0]);
 
         Invoke("CheckLion", initialLionTime);
         Invoke("CheckVisitors", 2f);
-	}
+        gameState = GameState.Playing;
 
-    void Reset()
+        StartCoroutine(RunClock());
+    }
+
+    IEnumerator RunClock()
     {
-        money = 0;
-        UpdateMoney();
+        float startTime = Time.realtimeSinceStartup;
+
+        while (Time.realtimeSinceStartup - startTime < gameTime)
+        {
+            clockImage.fillAmount = (Time.realtimeSinceStartup - startTime) / gameTime;
+            yield return null;
+        }
+
+        pauseText.text = "GAME OVER";
+        Time.timeScale = 0;
+        gameState = GameState.Paused;
+        pauseBox.SetActive(true);
     }
 
     void CheckLion()
@@ -95,12 +161,12 @@ public class Main : MonoBehaviour {
 
     void CheckVisitors()
     {
-        if (units.Count(u => u.type == UnitType.Visitor) < 2)
+        if (visitors.Count(u => u.type == UnitType.Visitor) < 2)
         {
             var visitor = GameObject.Instantiate<Unit>(visitorPrefab);
             visitor.Tile = map.GetTile(6, 0);
             visitor.spriteRenderer.sprite = visitorSprites[Random.Range(0, visitorSprites.Length)];
-            units.Add(visitor);
+            visitors.AddLast(visitor);
             visitor.Init(this);
         }
 
@@ -131,15 +197,25 @@ public class Main : MonoBehaviour {
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            foreach (var animal in animals)
+            switch (gameState)
             {
-                if (animal.animalState == AnimalState.Pacing)
-                {
-                    animal.Escape(this);
+                case GameState.Playing:
+                    Time.timeScale = 0;
+                    gameState = GameState.Paused;
+                    pauseBox.SetActive(true);
                     break;
-                }
+
+                case GameState.Paused:
+                    Time.timeScale = 1f;
+                    gameState = GameState.Playing;
+                    pauseBox.SetActive(false);
+                    break;
+
+                case GameState.Title:
+                    Application.Quit();
+                    break;
             }
         }
 	}
@@ -191,6 +267,7 @@ public class Main : MonoBehaviour {
         poo.Tile = tile;
         tile.Occupy(poo);
         poos.AddLast(poo);
+        PlayAudio("DropPoo");
     }
 
     public void RemovePoo(Unit poo)
@@ -198,6 +275,7 @@ public class Main : MonoBehaviour {
         poo.RemoveFromTile();
         poos.Remove(poo);
         Destroy(poo.gameObject);
+        PlayAudio("EatPoo");
     }
 
     public void Dialogue(string id, string message)
@@ -224,21 +302,23 @@ public class Main : MonoBehaviour {
     {
         money += amount;
         UpdateMoney();
+        PlayAudio("Satisfy");
     }
 
     public void KillVisitor(Unit unit)
     {
         money -= lawsuitCost;
         unit.RemoveFromTile();
-        units.Remove(unit);
+        visitors.Remove(unit);
         Destroy(unit.gameObject);
         UpdateMoney();
         Dialogue("boss", "Oh no! That's another lawsuit! Oink!");
+        PlayAudio("Scream");
     }
 
     public void RemoveUnit(Unit unit)
     {
-        units.Remove(unit);
+        visitors.Remove(unit);
         Destroy(unit.gameObject);
     }
 
@@ -250,6 +330,17 @@ public class Main : MonoBehaviour {
             {
                 animal.Escape(this);
                 break;
+            }
+        }
+    }
+
+    public void PlayAudio(string id)
+    {
+        foreach (var data in audioData)
+        {
+            if (data.id == id)
+            {
+                sfxSource.PlayOneShot(data.clips[Random.Range(0, data.clips.Count)]);
             }
         }
     }

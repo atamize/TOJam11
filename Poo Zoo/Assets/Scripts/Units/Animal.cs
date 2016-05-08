@@ -34,7 +34,14 @@ public abstract class Animal : Unit
             }
         }
 
+        if (moveRoutine != null)
+            StopCoroutine(moveRoutine);
+
+        if (moveTween != null)
+            moveTween.Kill();
+
         Tile = cageTiles[cageTileIndex];
+
         moveRoutine = StartCoroutine(Pace(main.map));
     }
 
@@ -122,8 +129,8 @@ public abstract class Animal : Unit
     protected IEnumerator GoHome(Main main)
     {
         var gateTile = main.map.GetTile(HomeTile.x, HomeTile.y + (cageTileY == 1 ? 1 : -1));
-        animalState = AnimalState.Pacing;
         yield return MoveTween(gateTile);
+        animalState = AnimalState.Pacing;
         Tile = gateTile;
         moveRoutine = StartCoroutine(Pace(main.map));
     }

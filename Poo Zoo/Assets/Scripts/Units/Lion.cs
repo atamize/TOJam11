@@ -11,12 +11,15 @@ public class Lion : Animal
 
     public override void Escape(Main main)
     {
+        lastTile = null;
         wasBlocked = false;
         base.Escape(main);
     }
 
     protected override IEnumerator Prowl(Main main)
     {
+        main.PlayAudio("LionEscape");
+        GetComponent<Collider2D>().enabled = true;
         while (true)
         {
             List<Tile> adjacent = main.map.GetAdjacentTiles(Tile);
@@ -56,6 +59,7 @@ public class Lion : Animal
             {
                 lastTile = other.GetComponent<Unit>().Tile;
                 wasBlocked = true;
+                GetComponent<Collider2D>().enabled = false;
                 MoveBack(() =>
                 {
                     moveRoutine = StartCoroutine(Prowl(Main.Instance));

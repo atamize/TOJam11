@@ -39,6 +39,8 @@ public class Monkey : Animal
         var fuck = new DontCare(main.map);
         SearchParameters search = new SearchParameters(new Point(0,0), new Point(0,0), fuck);
         PathFinder pf = new PathFinder(search);
+
+        main.PlayAudio("MonkeyEscape");
         
         while (main.PooUnits.Any())
         {

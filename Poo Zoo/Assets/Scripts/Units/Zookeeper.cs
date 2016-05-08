@@ -7,14 +7,17 @@ public enum ZookeeperState { Normal, Eating };
 public class Zookeeper : Unit
 {
     public Text pooText;
+    public int initialPoo = 2;
     public int eatingTime = 5;
 
-    int pooCount = 2;
+    int pooCount;
     ZookeeperState state;
 
     public override void Init(Main main)
     {
         base.Init(main);
+        pooCount = initialPoo;
+        UpdatePoo();
         state = ZookeeperState.Normal;
     }
 
@@ -47,6 +50,7 @@ public class Zookeeper : Unit
             main.HideButton(0);
             main.HideButton(1);
             StartCoroutine(Eating(main));
+            main.PlayAudio("Eating");
         }
     }
 
