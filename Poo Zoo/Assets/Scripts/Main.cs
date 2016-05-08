@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using SimpleAStarExample;
 using UnityEngine.UI;
+using System.Linq;
 
 [System.Serializable]
 public class DialogueData
@@ -25,8 +26,17 @@ public class Main : MonoBehaviour {
     public Text moneyText;
     public Unit pooPrefab;
     public Unit visitorPrefab;
+    public Animal lion;
+    public Animal monkey;
+    public float initialLionTime = 10;
+    public float minLionTime;
+    public float maxLionTime;
+    public float minVisitorTime;
+    public float maxVisitorTime;
+    public int lawsuitCost = 100;
     public DialogueData[] dialogueData;
     public Sprite[] visitorSprites;
+    public string[] successStrings;
 
     SearchParameters searchParams;
     LinkedList<Unit> poos;
@@ -62,7 +72,30 @@ public class Main : MonoBehaviour {
 
         SelectUnit(units[0]);
 
-        for (int i = 0; i < 2; ++i)
+        Invoke("CheckLion", initialLionTime);
+        Invoke("CheckVisitors", 2f);
+	}
+
+    void Reset()
+    {
+        money = 0;
+        UpdateMoney();
+    }
+
+    void CheckLion()
+    {
+        if (lion.animalState == AnimalState.Pacing)
+        {
+            lion.Escape(this);
+            Dialogue("boss", "The lion has escaped! Use your poo to block his path!");
+        }
+
+        Invoke("CheckLion", Random.Range(minLionTime, maxLionTime));
+    }
+
+    void CheckVisitors()
+    {
+        if (units.Count(u => u.type == UnitType.Visitor) < 2)
         {
             var visitor = GameObject.Instantiate<Unit>(visitorPrefab);
             visitor.Tile = map.GetTile(6, 0);
@@ -70,12 +103,8 @@ public class Main : MonoBehaviour {
             units.Add(visitor);
             visitor.Init(this);
         }
-	}
 
-    void Reset()
-    {
-        money = 0;
-        UpdateMoney();
+        Invoke("CheckVisitors", Random.Range(minVisitorTime, maxVisitorTime));
     }
 
     void UpdateMoney()
@@ -199,11 +228,12 @@ public class Main : MonoBehaviour {
 
     public void KillVisitor(Unit unit)
     {
-        money -= 100;
+        money -= lawsuitCost;
         unit.RemoveFromTile();
         units.Remove(unit);
         Destroy(unit.gameObject);
         UpdateMoney();
+        Dialogue("boss", "Oh no! That's another lawsuit! Oink!");
     }
 
     public void RemoveUnit(Unit unit)

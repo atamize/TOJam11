@@ -32,6 +32,8 @@ public class DontCare : IBoolMap
 
 public class Monkey : Animal
 {
+    bool scared = false;
+
     protected override IEnumerator Prowl(Main main)
     {
         var fuck = new DontCare(main.map);
@@ -64,7 +66,26 @@ public class Monkey : Animal
         }
 
         // No more poo; go home
-        yield return MoveTo(main.map, HomeTile);
-        StartCoroutine(GoHome(main));
+        yield return ReturnHome();
+    }
+
+
+    public void Scare()
+    {
+        if (!scared)
+        {
+            if (moveRoutine != null)
+                StopCoroutine(moveRoutine);
+
+            StartCoroutine(ReturnHome());
+            scared = true;
+        }
+    }
+
+    IEnumerator ReturnHome()
+    {
+        yield return MoveTo(Main.Instance.map, HomeTile);
+        yield return StartCoroutine(GoHome(Main.Instance));
+        scared = false;
     }
 }

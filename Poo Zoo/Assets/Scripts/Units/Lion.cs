@@ -38,10 +38,11 @@ public class Lion : Animal
             yield return moveTween.WaitForCompletion();
             Tile = next;
 
-            if (wasBlocked && next == HomeTile)
+            if (wasBlocked && next == main.map.GetTile(2, 6))
             {
                 StartCoroutine(GoHome(main));
                 wasBlocked = false;
+                main.Dialogue("boss", "Great! Now clean up the poo! The monkey will help!");
                 yield break;
             }
         }
@@ -66,7 +67,7 @@ public class Lion : Animal
             }
             else if (other.CompareTag("Monkey"))
             {
-                // TODO: monkey dies/goes back to pen
+                other.GetComponent<Monkey>().Scare();
             }
         }
     }

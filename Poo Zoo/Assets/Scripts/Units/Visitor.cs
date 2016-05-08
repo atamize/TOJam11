@@ -8,6 +8,7 @@ public class Visitor : Unit
     enum State { Moving, Waiting, Leaving }
 
     public float waitTime = 5f;
+    public int baseMoney = 10;
 
     List<Tile> stations;
     State state;
@@ -41,19 +42,21 @@ public class Visitor : Unit
 	
     IEnumerator Visit(Main main)
     {
-        foreach (var station in stations)
+        for (int i = 0; i < stations.Count; ++i)
         {
-            yield return MoveTo(main.map, station);
+            yield return MoveTo(main.map, stations[i]);
 
             state = State.Waiting;
             yield return new WaitForSeconds(waitTime);
 
-            main.VisitSuccess(this, 10);
+            main.VisitSuccess(this, baseMoney * (i + 1));
         }
 
         yield return MoveTo(main.map, main.map.GetTile(6, 0));
         RemoveFromTile();
         main.RemoveUnit(this);
+
+        main.Dialogue("boss", main.successStrings[Random.Range(0, main.successStrings.Length)]);
     }
 
     void OnTriggerEnter2D(Collider2D other)
