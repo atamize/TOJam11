@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using SimpleAStarExample;
 
 public class Visitor : Unit
 {
@@ -63,7 +64,15 @@ public class Visitor : Unit
     {
         if (IsBlocked(other.tag))
         {
-            MoveBack(() => MoveTo(Main.Instance.map, destinationTile));
+            Main.Instance.PlayAudio("Scream");
+            StartCoroutine(Disgust());
+            //MoveBack(() => MoveTo(Main.Instance.map, destinationTile));
         }
+    }
+
+    IEnumerator Disgust()
+    {
+        yield return MoveTo(Main.Instance.map, Main.Instance.map.GetTile(6, 0));
+        Main.Instance.VisitorDisgusted(this);
     }
 }

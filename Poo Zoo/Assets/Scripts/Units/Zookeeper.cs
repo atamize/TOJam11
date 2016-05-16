@@ -1,12 +1,43 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using SimpleAStarExample;
 
 public enum ZookeeperState { Normal, Eating };
+
+public class AvoidPoo : IBoolMap
+{
+    Map map;
+
+    public AvoidPoo(Map _map)
+    {
+        map = _map;
+    }
+
+    public int GetWidth()
+    {
+        return map.width;
+    }
+
+    public int GetHeight()
+    {
+        return map.height;
+    }
+
+    public bool Get(int x, int y)
+    {
+        var tile = map.GetTile(x, y);
+        if (!tile.IsFree() || tile.OccupiedBy("Poo"))
+            return false;
+        
+        return true;
+    }
+}
 
 public class Zookeeper : Unit
 {
     public Text pooText;
+    public Image snackFill;
     public int initialPoo = 2;
     public int eatingTime = 5;
 
@@ -19,32 +50,40 @@ public class Zookeeper : Unit
         pooCount = initialPoo;
         UpdatePoo();
         state = ZookeeperState.Normal;
+        snackFill.transform.parent.gameObject.SetActive(false);
     }
 
     public override void Action1(Main main)
     {
         if (pooCount > 0)
         {
-            main.AddPoo(Tile);
-            --pooCount;
-            UpdatePoo();
+            var tile = Tile;
+            if (!tile.OccupiedBy("Lion", "Poo"))
+            {
+                main.AddPoo(tile);
+                --pooCount;
+                UpdatePoo();
+            }
         }
         else
         {
             main.Dialogue("emily", "I don't have enough poo! Time to go to the Snack Bar!");
+            main.snackHint.SetActive(true);
         }
     }
 
     public override void Action2(Main main)
     {
-        int x = Tile.x;
-        int y = Tile.y;
+        var tile = Tile;
+        int x = tile.x;
+        int y = tile.y;
 
         if (x == 10 && y == 0)
         {
             main.Release(UnitType.Monkey);
+            main.monkeyHint.SetActive(false);
         }
-        else if (Tile.x == 6 && Tile.y == 6)
+        else if (tile.x == 6 && tile.y == 6)
         {
             state = ZookeeperState.Eating;
             main.HideButton(0);
@@ -56,16 +95,23 @@ public class Zookeeper : Unit
 
     IEnumerator Eating(Main main)
     {
-        for (int i = 0; i < eatingTime; ++i)
+        main.snackHint.SetActive(false);
+        snackFill.transform.parent.gameObject.SetActive(true);
+        snackFill.fillAmount = 1f;
+
+        main.Dialogue("emily", "Yumm! I love snacks...munch munch munch");
+
+        for (float f = 0f; f < eatingTime; f += Time.deltaTime)
         {
-            main.Dialogue("emily", "Yumm! I love snacks...will be done in " + (eatingTime - i));
-            yield return new WaitForSeconds(1);
+            snackFill.fillAmount = 1f - (f / eatingTime);
+            yield return null;
         }
 
-        pooCount++;
+        pooCount += 2;
         UpdatePoo();
         main.Dialogue("emily", "Yaayyyyy! Now I have poo!");
         state = ZookeeperState.Normal;
+        snackFill.transform.parent.gameObject.SetActive(false);
         Arrived(main.map);
     }
 
@@ -89,7 +135,30 @@ public class Zookeeper : Unit
             Main.Instance.HideButton(0);
             Main.Instance.HideButton(1);
 
-            return base.MoveTo(map, tile);
+            destinationTile = tile;
+
+            if (searchParams == null)
+            {
+                AvoidPoo avoidPoo = new AvoidPoo(Main.Instance.map);
+                searchParams = new SearchParameters(Tile.Location, tile.Location, avoidPoo);
+            }
+            else
+            {
+                searchParams.StartLocation = Tile.Location;
+                searchParams.EndLocation = tile.Location;
+            }
+
+            if (pathFinder == null)
+            {
+                pathFinder = new PathFinder(searchParams);
+            }
+            else
+            {
+                pathFinder.SetSearchParameters(searchParams);
+            }
+
+            var path = pathFinder.FindPath();
+            return MoveToPath(map, path);
         }
         return null;
     }
@@ -97,12 +166,13 @@ public class Zookeeper : Unit
     public override void Arrived(Map map)
     {
         Main.Instance.ShowButton(0, buttonStrings[0]);
-        
-        if (Tile.x == 10 && Tile.y == 0)
+        var tile = Tile;
+
+        if (tile.x == 10 && tile.y == 0)
         {
             Main.Instance.ShowButton(1, "Free Monkey");
         }
-        else if (Tile.x == 6 && Tile.y == 6)
+        else if (tile.x == 6 && tile.y == 6)
         {
             Main.Instance.ShowButton(1, "Eat Snacks");
         }

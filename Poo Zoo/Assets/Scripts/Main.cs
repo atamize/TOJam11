@@ -39,6 +39,8 @@ public class Main : MonoBehaviour {
     public Unit visitorPrefab;
     public Animal lion;
     public Animal monkey;
+    public GameObject monkeyHint;
+    public GameObject snackHint;
     public Image clockImage;
     public float gameTime = 120f;
     public float initialLionTime = 10;
@@ -46,7 +48,8 @@ public class Main : MonoBehaviour {
     public float maxLionTime;
     public float minVisitorTime;
     public float maxVisitorTime;
-    public int lawsuitCost = 100;
+    public int lawsuitCost = 50;
+    public int disgustCost = 20;
     public DialogueData[] dialogueData;
     public AudioData[] audioData;
     public Sprite[] visitorSprites;
@@ -109,7 +112,9 @@ public class Main : MonoBehaviour {
             Destroy(p.gameObject);
         }
         poos.Clear();
-        
+
+        monkeyHint.SetActive(false);
+        snackHint.SetActive(false);
         UpdateMoney();
         CancelInvoke();
         StopAllCoroutines();
@@ -119,7 +124,7 @@ public class Main : MonoBehaviour {
             if (unit.type == UnitType.Zookeeper)
             {
                 var tile = map.GetTileWithState(unit.StartState);
-                unit.Tile = tile;
+                unit.mTransform.position = tile.worldPosition;
             }
             unit.Init(this);
         }
@@ -167,7 +172,7 @@ public class Main : MonoBehaviour {
         if (visitors.Count(u => u.type == UnitType.Visitor) < 2)
         {
             var visitor = GameObject.Instantiate<Unit>(visitorPrefab);
-            visitor.Tile = map.GetTile(6, 0);
+            visitor.transform.position = map.GetTile(6, 0).worldPosition;
             visitor.spriteRenderer.sprite = visitorSprites[Random.Range(0, visitorSprites.Length)];
             visitors.AddLast(visitor);
             visitor.Init(this);
@@ -276,7 +281,7 @@ public class Main : MonoBehaviour {
     public void AddPoo(Tile tile)
     {
         var poo = GameObject.Instantiate<Unit>(pooPrefab);
-        poo.Tile = tile;
+        poo.transform.position = tile.worldPosition;
         tile.Occupy(poo);
         poos.AddLast(poo);
         PlayAudio("DropPoo");
@@ -315,6 +320,16 @@ public class Main : MonoBehaviour {
         money += amount;
         UpdateMoney();
         PlayAudio("Satisfy");
+    }
+
+    public void VisitorDisgusted(Unit unit)
+    {
+        money -= disgustCost;
+        UpdateMoney();
+        visitors.Remove(unit);
+        Destroy(unit.gameObject);
+        Dialogue("boss", "We lost a customer! Clean up that poo!");
+        monkeyHint.SetActive(true);
     }
 
     public void KillVisitor(Unit unit)

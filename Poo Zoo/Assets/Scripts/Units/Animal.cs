@@ -20,6 +20,12 @@ public abstract class Animal : Unit
 
     public Tile HomeTile { get { return homeTile; } }
 
+    void Start()
+    {
+        StartCoroutine(CheckDirection());
+        startingCageIndex = cageTileIndex;
+    }
+
     public override void Init(Main main)
     {
         pacing = true;
@@ -34,22 +40,39 @@ public abstract class Animal : Unit
             }
         }
 
+        homeTile = main.map.GetTile(cageTiles[cageTileIndex].x, cageTiles[cageTileIndex].y + (cageTileY == 1 ? -1 : 1));
+
         if (moveRoutine != null)
             StopCoroutine(moveRoutine);
 
         if (moveTween != null)
             moveTween.Kill();
 
-        Tile = cageTiles[cageTileIndex];
-
+        mTransform.position = cageTiles[cageTileIndex].worldPosition;
         moveRoutine = StartCoroutine(Pace(main.map));
+    }
+
+    IEnumerator CheckDirection()
+    {
+        SpriteRenderer spriteRenderer = mTransform.GetChild(0).GetComponent<SpriteRenderer>();
+        Vector3 oldPos = mTransform.position;
+
+        while (true)
+        {
+            if (mTransform.position.x > oldPos.x)
+                spriteRenderer.flipX = true;
+            else
+                spriteRenderer.flipX = false;
+
+            oldPos = mTransform.position;
+            yield return new WaitForSeconds(0.25f);
+        }
     }
 
     IEnumerator Pace(Map map)
     {
         mTransform = this.transform;
         List<int> adjacent = new List<int>();
-        startingCageIndex = cageTileIndex;
         animalState = AnimalState.Pacing;
 
         while (true)
@@ -87,7 +110,8 @@ public abstract class Animal : Unit
 
             cageTileIndex = adjacent[Random.Range(0, adjacent.Count)];
             var tile = cageTiles[cageTileIndex];
-            yield return MoveTween(tile);
+            moveTween = MoveTweener(tile);
+            yield return moveTween.WaitForCompletion();
         }
     }
 
@@ -95,7 +119,10 @@ public abstract class Animal : Unit
     {
         animalState = AnimalState.Escaped;
         StopCoroutine(moveRoutine);
-
+        if (moveTween != null)
+        {
+            moveTween.Kill();
+        }
         moveRoutine = StartCoroutine(MoveToGate(main));
     }
 
@@ -108,19 +135,10 @@ public abstract class Animal : Unit
             yield return MoveTween(tile);
         }
 
-        var gateTile = main.map.GetTile(tile.x, tile.y + (cageTileY == 1 ? -1 : 1));
-        
-        while (!CanOccupyTile(gateTile))
-        {
-            yield return new WaitForSeconds(0.5f);
-        }
-
         // We're free!
-        yield return MoveTween(gateTile);
+        yield return MoveTween(homeTile);
 
         animalState = AnimalState.Escaped;
-        Tile = gateTile;
-        homeTile = gateTile;
         moveRoutine = StartCoroutine(Prowl(main));
     }
 
@@ -128,10 +146,9 @@ public abstract class Animal : Unit
 
     protected IEnumerator GoHome(Main main)
     {
+        animalState = AnimalState.Pacing;
         var gateTile = main.map.GetTile(HomeTile.x, HomeTile.y + (cageTileY == 1 ? 1 : -1));
         yield return MoveTween(gateTile);
-        animalState = AnimalState.Pacing;
-        Tile = gateTile;
         moveRoutine = StartCoroutine(Pace(main.map));
     }
 

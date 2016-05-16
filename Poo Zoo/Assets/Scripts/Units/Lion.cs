@@ -6,23 +6,23 @@ using System.Linq;
 
 public class Lion : Animal
 {
-    Tile lastTile;
     bool wasBlocked;
 
     public override void Escape(Main main)
     {
         lastTile = null;
         wasBlocked = false;
+        main.PlayAudio("LionEscape");
         base.Escape(main);
     }
 
     protected override IEnumerator Prowl(Main main)
     {
-        main.PlayAudio("LionEscape");
         GetComponent<Collider2D>().enabled = true;
         while (true)
         {
-            List<Tile> adjacent = main.map.GetAdjacentTiles(Tile);
+            var tile = Tile;
+            List<Tile> adjacent = main.map.GetAdjacentTiles(tile);
             adjacent.Remove(lastTile);
 
             Tile next = null;
@@ -39,13 +39,16 @@ public class Lion : Animal
 
             moveTween = MoveTweener(next);
             yield return moveTween.WaitForCompletion();
-            Tile = next;
 
             if (wasBlocked && next == main.map.GetTile(2, 6))
             {
                 StartCoroutine(GoHome(main));
                 wasBlocked = false;
                 main.Dialogue("boss", "Great! Now clean up the poo! The monkey will help!");
+                if (main.PooUnits.Any())
+                {
+                    main.monkeyHint.SetActive(true);
+                }
                 yield break;
             }
         }
@@ -57,13 +60,18 @@ public class Lion : Animal
         {
             if (IsBlocked(other.tag))
             {
-                lastTile = other.GetComponent<Unit>().Tile;
-                wasBlocked = true;
-                GetComponent<Collider2D>().enabled = false;
-                MoveBack(() =>
+                if (other.GetComponent<Unit>().Tile != HomeTile)
                 {
-                    moveRoutine = StartCoroutine(Prowl(Main.Instance));
-                });
+                    wasBlocked = true;
+                    GetComponent<Collider2D>().enabled = false;
+                    float oldSpeed = speed;
+                    speed *= 2f;
+                    MoveBack(() =>
+                    {
+                        speed = oldSpeed;
+                        moveRoutine = StartCoroutine(Prowl(Main.Instance));
+                    });
+                }
             }
             else if (other.CompareTag("Visitor"))
             {

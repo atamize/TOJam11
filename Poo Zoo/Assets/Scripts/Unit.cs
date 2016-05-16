@@ -20,24 +20,23 @@ public class Unit : MonoBehaviour
 
     public Tile Tile
     {
-        get { return currentTile; }
-        set
+        get
         {
-            if (currentTile != null)
+            RaycastHit hit;
+            if (Physics.Raycast(mTransform.position, Vector3.forward, out hit))
             {
-                currentTile.Remove(this);
+                var to = hit.collider.GetComponent<TileObject>();
+                return Main.Instance.map.GetTile(to.x, to.y);
             }
-            currentTile = value;
-            transform.position = currentTile.worldPosition;
+            return null;
         }
     }
 
-    protected Transform mTransform;
+    public Transform mTransform;
     protected Tile lastTile;
-    Tile currentTile;
     protected Tile destinationTile;
-    SearchParameters searchParams;
-    PathFinder pathFinder;
+    protected SearchParameters searchParams;
+    protected PathFinder pathFinder;
     protected Tweener moveTween;
     protected Coroutine moveRoutine;
     bool moving;
@@ -45,11 +44,6 @@ public class Unit : MonoBehaviour
     public char StartState
     {
         get { return startState[0]; }
-    }
-
-    void Start()
-    {
-        mTransform = this.transform;
     }
 
     public virtual void Init(Main main) { }
@@ -66,26 +60,17 @@ public class Unit : MonoBehaviour
 
     }
 
-    public bool CanOccupyTile(Tile tile)
-    {
-        foreach (var unitType in blockedBy)
-        {
-            if (tile.OccupiedBy(unitType))
-                return false;
-        }
-        return true;
-    }
-
     public virtual Coroutine MoveTo(Map map, Tile tile)
     {
         destinationTile = tile;
+        
         if (searchParams == null)
         {
-            searchParams = new SearchParameters(currentTile.Location, tile.Location, map);
+            searchParams = new SearchParameters(Tile.Location, tile.Location, map);
         }
         else
         {
-            searchParams.StartLocation = currentTile.Location;
+            searchParams.StartLocation = Tile.Location;
             searchParams.EndLocation = tile.Location;
         }
 
@@ -123,13 +108,11 @@ public class Unit : MonoBehaviour
         foreach (var point in path)
         {
             var tile = map.GetTile(point.X, point.Y);
-            
+            lastTile = Tile;
             moveTween = mTransform.DOMove(tile.worldPosition, speed).SetSpeedBased(true).SetEase(Ease.Linear);
             yield return moveTween.WaitForCompletion();
-            Tile = map.GetTile(point.X, point.Y);
         }
 
-        Tile.Occupy(this);
         moving = false;
         Arrived(map);
     }
@@ -140,11 +123,12 @@ public class Unit : MonoBehaviour
 
     public void RemoveFromTile()
     {
-        Tile.Remove(this);
+        //Tile.Remove(this);
     }
 
     protected Tweener MoveTweener(Tile tile)
     {
+        lastTile = Tile;
         return mTransform.DOMove(tile.worldPosition, speed).SetSpeedBased(true).SetEase(Ease.Linear);
     }
 
@@ -173,9 +157,10 @@ public class Unit : MonoBehaviour
             moveTween = null;
         }
 
-        StopCoroutine(moveRoutine);
+        if (moveRoutine != null)
+            StopCoroutine(moveRoutine);
 
-        var tweener = MoveTweener(Tile);
+        var tweener = MoveTweener(lastTile);
         tweener.OnComplete(() =>
         {
             callback();
